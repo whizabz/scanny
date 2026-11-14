@@ -12,6 +12,7 @@ struct SettingsView: View {
     @AppStorage("nameSeparator") private var separator = NameSeparator.none.rawValue
     @AppStorage("autoLaunchScanner") private var autoLaunch = true
     @AppStorage("clearAfterMinutes") private var clearAfterMinutes = 0
+    @AppStorage("defaultFormat") private var defaultFormat = ExportFormat.pdf.rawValue
     @AppStorage("defaultFilter") private var filterRaw = PageFilter.original.rawValue
 
     @State private var showInfo = false
@@ -67,6 +68,9 @@ struct SettingsView: View {
                     }
                     Picker("Default Filter", selection: $filterRaw) {
                         ForEach(PageFilter.allCases) { Text($0.rawValue).tag($0.rawValue) }
+                    }
+                    Picker("Default File Type", selection: $defaultFormat) {
+                        ForEach(ExportFormat.allCases) { Text($0.rawValue).tag($0.rawValue) }
                     }
                 }
 

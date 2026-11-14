@@ -37,19 +37,21 @@ struct PageDetailView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Page \(number)")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden(true)
+            // Native back button (and swipe-back) until there are edits. Hiding it
+            // while editing also turns off the swipe, so edits can't be lost by accident.
+            .navigationBarBackButtonHidden(hasChanges)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Discard Changes", systemImage: "xmark") {
-                        if hasChanges { confirmDiscard = true } else { onClose() }
+                if hasChanges {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Discard Changes", systemImage: "xmark") { confirmDiscard = true }
                     }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save", systemImage: "checkmark") {
-                        onSave(draft)
-                        onClose()
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Save", systemImage: "checkmark") {
+                            onSave(draft)
+                            onClose()
+                        }
+                        .buttonStyle(.glassProminent)
                     }
-                    .buttonStyle(.glassProminent)
                 }
                 // One group, so the tools share a single Liquid Glass pill.
                 ToolbarItemGroup(placement: .bottomBar) {

@@ -5,8 +5,11 @@ struct ContentView: View {
     // Held in memory only. Nothing is saved, so closing the app clears the scan.
     @State private var items: [PageItem] = []
     @State private var pageToDelete: UUID?
+    /// Pages that will be exported. New pages start selected.
+    @State private var selectedIDs: Set<UUID> = []
     @State private var selectedID: UUID?
-    @State private var format: ExportFormat = .pdf
+    @State private var format: ExportFormat =
+        ExportFormat(rawValue: UserDefaults.standard.string(forKey: "defaultFormat") ?? "") ?? .pdf
     @State private var exportFiles: [URL] = []
     @State private var confirmDiscard = false
     @State private var docName = ""
@@ -15,6 +18,7 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("clearAfterMinutes") private var clearAfterMinutes = 0
     @AppStorage("autoLaunchScanner") private var autoLaunch = true
+    @AppStorage("defaultFormat") private var defaultFormatRaw = ExportFormat.pdf.rawValue
     @AppStorage("defaultFilter") private var defaultFilterRaw = PageFilter.original.rawValue
 
     // The scanner controller is kept alive so "Edit" can reopen the same session.
@@ -24,7 +28,14 @@ struct ContentView: View {
         && (UserDefaults.standard.object(forKey: "autoLaunchScanner") as? Bool ?? true)
     @State private var screenWidth: CGFloat = 390
 
+    /// "Share", or "Share (3)" when several images will be shared.
+    private var shareTitle: String {
+        format == .images && selectedItems.count > 1 ? "Share (\(selectedItems.count))" : "Share"
+    }
+
     private var pages: [UIImage] { items.map(\.rendered) }
+    private var selectedItems: [PageItem] { items.filter { selectedIDs.contains($0.id) } }
+    private var selectedPages: [UIImage] { selectedItems.map(\.rendered) }
 
     var body: some View {
         NavigationStack {
@@ -33,10 +44,11 @@ struct ContentView: View {
                     emptyState
                 } else {
                     reviewGrid
+                        .safeAreaInset(edge: .bottom) { shareBar }
                 }
             }
-            .navigationTitle(items.isEmpty ? "Scanny" : "\(pages.count) \(pages.count == 1 ? "Page" : "Pages")")
-            .navigationBarTitleDisplayMode(items.isEmpty ? .inline : .large)
+            .navigationTitle(items.isEmpty ? "Scanny" : "")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .navigationDestination(item: $selectedID) { id in
                 if let index = items.firstIndex(where: { $0.id == id }) {
@@ -85,10 +97,16 @@ struct ContentView: View {
                 break
             }
         }
-        .task(id: ExportKey(signature: items.map(\.signature), format: format, name: docName)) {
+        .task(id: ExportKey(signature: selectedItems.map(\.signature), format: format, name: docName)) {
             try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }
-            exportFiles = ScanExport.files(for: pages, format: format, name: docName)
+            // Encoding pages is slow; do it off the main thread so taps stay responsive.
+            let (images, fmt, name) = (selectedPages, format, docName)
+            let files = await Task.detached(priority: .userInitiated) {
+                ScanExport.files(for: images, format: fmt, name: name)
+            }.value
+            guard !Task.isCancelled else { return }
+            exportFiles = files
         }
         .alert("Delete this scan?", isPresented: $confirmDiscard) {
             Button("Cancel", role: .cancel) {}
@@ -103,6 +121,7 @@ struct ContentView: View {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 items.removeAll { $0.id == pageToDelete }
+                if let id = pageToDelete { selectedIDs.remove(id) }
                 selectedID = nil
                 if items.isEmpty { ScanExport.clear() }
             }
@@ -125,19 +144,23 @@ struct ContentView: View {
     private func addPages(_ images: [UIImage]) {
         if items.isEmpty {
             docName = NameTemplate.generateFromDefaults()
+            format = ExportFormat(rawValue: defaultFormatRaw) ?? .pdf
         }
         let filter = PageFilter(rawValue: defaultFilterRaw) ?? .original
-        items.append(contentsOf: images.map { image in
+        let new: [PageItem] = images.map { image in
             var item = PageItem(image)
             if filter != .original { item.setFilter(filter) }
             return item
-        })
+        }
+        items.append(contentsOf: new)
+        selectedIDs.formUnion(new.map(\.id))
     }
 
     /// The app was away longer than the "clear after" setting: drop the old scan.
     private func expireScan() {
         docName = ""
         items = []
+        selectedIDs = []
         exportFiles = []
         selectedID = nil
         pageToDelete = nil
@@ -148,6 +171,7 @@ struct ContentView: View {
     private func discard() {
         docName = ""
         items = []
+        selectedIDs = []
         exportFiles = []
         ScanExport.clear()
         startScan()
@@ -181,13 +205,20 @@ struct ContentView: View {
 
     private var reviewGrid: some View {
         ScrollView {
-            TextField("Name", text: $docName)
-                .textFieldStyle(.roundedBorder)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .submitLabel(.done)
-                .padding(.horizontal)
-                .padding(.top, 4)
+            HStack {
+                Text("\(selectedItems.count) of \(items.count) selected")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("All") { selectedIDs = Set(items.map(\.id)) }
+                    .disabled(selectedIDs.count == items.count)
+                Button("None") { selectedIDs = [] }
+                    .disabled(selectedIDs.isEmpty)
+            }
+            .buttonStyle(.glass)
+            .controlSize(.regular)
+            .padding(.horizontal)
+            .padding(.top, 20)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 20) {
                 ForEach(items) { item in
                     VStack(spacing: 10) {
@@ -205,13 +236,33 @@ struct ContentView: View {
                                 }
                         }
                         .buttonStyle(.plain)
+                        .opacity(selectedIDs.contains(item.id) ? 1 : 0.5)
+                        .overlay(alignment: .topTrailing) { selectionMark(for: item) }
                         pageActions(for: item)
                     }
                 }
             }
-            .padding()
+            .padding([.horizontal, .bottom])
+            .padding(.top, 8)
         }
         .scrollDismissesKeyboard(.interactively)
+    }
+
+    private func selectionMark(for item: PageItem) -> some View {
+        let isSelected = selectedIDs.contains(item.id)
+        return Button {
+            if isSelected { selectedIDs.remove(item.id) } else { selectedIDs.insert(item.id) }
+        } label: {
+            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                .font(.title2)
+                .symbolRenderingMode(isSelected ? .palette : .monochrome)
+                // Like Photos: a white ring with a soft shadow when unselected.
+                .foregroundStyle(Color.white, Color.accentColor)
+                .shadow(color: .black.opacity(0.35), radius: 2)
+                .padding(8)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isSelected ? "Deselect page" : "Select page")
     }
 
     private func pageActions(for item: PageItem) -> some View {
@@ -241,6 +292,62 @@ struct ContentView: View {
         .buttonBorderShape(.circle)
     }
 
+    /// Format dropdown on the left, Share filling the remaining width.
+    private var shareBar: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 10) {
+                Text("Name")
+                    .foregroundStyle(.secondary)
+                TextField("Name", text: $docName)
+                    .labelsHidden()
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .submitLabel(.done)
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 48)
+            .glassEffect(.regular.interactive(), in: .capsule)
+            actionRow
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+
+    private var actionRow: some View {
+        HStack(spacing: 12) {
+            // A menu picker draws its own small pill and ignores sizing, so a Menu
+            // with a glass button label is used to match the Share button's height.
+            Menu {
+                Picker("Format", selection: $format) {
+                    ForEach(ExportFormat.allCases) { Text($0.title(pageCount: selectedItems.count)).tag($0) }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    // Widest option laid out invisibly so the width never changes.
+                    ZStack {
+                        ForEach(ExportFormat.allCases) { Text($0.title(pageCount: selectedItems.count)).hidden() }
+                        Text(format.title(pageCount: selectedItems.count))
+                    }
+                    Image(systemName: "chevron.up.chevron.down").imageScale(.small)
+                }
+                .frame(maxHeight: .infinity)
+            }
+            .buttonStyle(.glass)
+            .controlSize(.large)
+            .frame(height: 50)
+            .fixedSize(horizontal: true, vertical: false)
+
+            ShareLink(items: exportFiles) {
+                Label(shareTitle, systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .buttonStyle(.glassProminent)
+            .controlSize(.large)
+            .frame(height: 50)
+            .disabled(exportFiles.isEmpty)
+        }
+    }
+
     private func update(_ id: UUID, _ change: (inout PageItem) -> Void) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         change(&items[index])
@@ -264,24 +371,6 @@ struct ContentView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Delete Scan", systemImage: "trash", role: .destructive) { confirmDiscard = true }
                     .tint(.red)
-            }
-            // A segmented picker in a toolbar renders as the Liquid Glass pill.
-            // Hiding the shared background avoids a second container behind it.
-            ToolbarItem(placement: .bottomBar) {
-                Picker("Share", selection: $format) {
-                    ForEach(ExportFormat.allCases) { Text($0.title(pageCount: pages.count)).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: max(160, screenWidth - 130))
-            }
-            .sharedBackgroundVisibility(.hidden)
-
-            ToolbarItem(placement: .bottomBar) {
-                ShareLink(items: exportFiles) {
-                    Label("Share", systemImage: "square.and.arrow.up")
-                }
-                .buttonStyle(.glassProminent)
-                .disabled(exportFiles.isEmpty)
             }
         }
     }
