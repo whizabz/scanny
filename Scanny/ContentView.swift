@@ -65,6 +65,11 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
+        .onOpenURL { url in
+            // scanny://scan, used by the lock screen widget.
+            guard url.scheme == "scanny", url.host == "scan", !isScanning else { return }
+            startScan()
+        }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .background:
