@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sweep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FF8A3D" stop-opacity="0.95"/>
+      <stop offset="0.25" stop-color="#FF8A3D" stop-opacity="0.6"/>
+      <stop offset="0.6" stop-color="#FF8A3D" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FF8A3D" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Scan light: a bright line through the middle that fades downward -->
+  <path d="M342 510H682V731A22 22 0 0 1 660 753H364A22 22 0 0 1 342 731Z" fill="url(#sweep)"/>
+  <path d="M330 510H694" stroke="#E8572A" stroke-width="18" stroke-linecap="round"/>
+</svg>

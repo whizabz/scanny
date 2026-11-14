@@ -1,0 +1,3 @@
+// Per-developer settings (signing team) live in Local.xcconfig, which is not committed.
+// Create Config/Local.xcconfig containing:  DEVELOPMENT_TEAM = YOUR_TEAM_ID
+#include? "Local.xcconfig"

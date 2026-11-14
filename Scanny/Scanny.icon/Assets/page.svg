@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- A4 portrait: 340 x 481 (1 : 1.414), centred -->
+  <rect x="342" y="272" width="340" height="481" rx="22" fill="#ffffff"/>
+  <g stroke="#F0894A" stroke-width="21" stroke-linecap="round" opacity="0.8">
+    <path d="M388 314H636"/>
+    <path d="M388 370H604"/>
+    <path d="M388 426H636"/>
+    <path d="M388 482H572"/>
+    <path d="M388 538H620"/>
+    <path d="M388 594H636"/>
+    <path d="M388 650H588"/>
+    <path d="M388 706H492"/>
+  </g>
+</svg>
