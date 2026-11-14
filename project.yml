@@ -1,6 +1,6 @@
 name: Scanny
 options:
-  bundleIdPrefix: app.scanny
+  bundleIdPrefix: xyz.saltedchips
   deploymentTarget:
     iOS: "26.0"
   createIntermediateGroups: true
@@ -10,6 +10,8 @@ configFiles:
 settings:
   base:
     SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
 targets:
@@ -21,6 +23,7 @@ targets:
       path: Scanny/Info.plist
       properties:
         CFBundleDisplayName: Scanny
+        ITSAppUsesNonExemptEncryption: false
         NSCameraUsageDescription: Scanny uses the camera to scan documents. Nothing is stored or uploaded.
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -34,6 +37,6 @@ targets:
           - UIInterfaceOrientationLandscapeRight
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.scanny.Scanny
+        PRODUCT_BUNDLE_IDENTIFIER: xyz.saltedchips.scanny
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: Scanny
