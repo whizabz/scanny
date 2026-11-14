@@ -152,11 +152,11 @@ struct ContentView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Text("Scan a Document")
+            Text("Scan a document")
                 .font(.title.bold())
         } description: {
             Text(DocumentScanner.isSupported
-                 ? "Nothing is saved. Scans are cleared when you close the app."
+                 ? "Nothing is saved. Scans stay only till you need them."
                  : "Document scanning needs a device with a camera.")
             .font(.footnote)
         } actions: {
