@@ -70,7 +70,7 @@ struct SettingsView: View {
                         ForEach(PageFilter.allCases) { Text($0.rawValue).tag($0.rawValue) }
                     }
                     Picker("Default File Type", selection: $defaultFormat) {
-                        ForEach(ExportFormat.allCases) { Text($0.rawValue).tag($0.rawValue) }
+                        ForEach(ExportFormat.allCases) { Text($0.title(pageCount: 1)).tag($0.rawValue) }
                     }
                 }
 
