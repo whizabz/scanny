@@ -24,7 +24,11 @@ enum ScanExport {
         let base = NameTemplate.fileSafe(name)
         clear()
         guard !pages.isEmpty else { return [] }
-        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        // Scans can be sensitive (IDs, bank letters), so keep them encrypted
+        // whenever the device is locked.
+        try? FileManager.default.createDirectory(
+            at: folder, withIntermediateDirectories: true,
+            attributes: [.protectionKey: FileProtectionType.complete])
 
         switch format {
         case .pdf:
@@ -35,7 +39,8 @@ enum ScanExport {
                 }
             }
             let url = folder.appendingPathComponent("\(base).pdf")
-            return document.write(to: url) ? [url] : []
+            guard let data = document.dataRepresentation() else { return [] }
+            return (try? data.write(to: url, options: [.atomic, .completeFileProtection])) != nil ? [url] : []
 
         case .images:
             // Index starts at 1 and is padded to the width of the page count
@@ -45,7 +50,7 @@ enum ScanExport {
                 let number = String(format: "%0\(width)d", index + 1)
                 guard let data = image.jpegData(compressionQuality: 0.9) else { return nil }
                 let url = folder.appendingPathComponent("\(base)-\(number).jpg")
-                return (try? data.write(to: url)) != nil ? url : nil
+                return (try? data.write(to: url, options: [.atomic, .completeFileProtection])) != nil ? url : nil
             }
         }
     }

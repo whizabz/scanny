@@ -170,5 +170,11 @@ enum NameTemplate {
         return trimmed.isEmpty ? defaultPrefix : trimmed
     }
 
-    static func fileSafe(_ name: String) -> String { cleaned(name) }
+    /// A name that is safe as a single file name: no path separators, no control
+    /// characters, and no leading dot (which would make a hidden file or "..").
+    static func fileSafe(_ name: String) -> String {
+        let stripped = cleaned(name).components(separatedBy: .controlCharacters).joined()
+        let noLeadingDots = stripped.drop(while: { $0 == "." })
+        return noLeadingDots.isEmpty ? defaultPrefix : String(noLeadingDots)
+    }
 }
