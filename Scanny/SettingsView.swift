@@ -81,6 +81,8 @@ struct SettingsView: View {
                             .font(.callout.monospaced())
                             .foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityLabel("File name preview")
+                            .accessibilityValue(NameTemplate.generate(style: style))
                         Button("Reset File Name", systemImage: "arrow.counterclockwise") {
                             confirmReset = true
                         }
@@ -99,6 +101,7 @@ struct SettingsView: View {
                                     .font(.footnote)
                                     .padding()
                                     .frame(width: 280)
+                                    .fixedSize(horizontal: false, vertical: true)
                                     .presentationCompactAdaptation(.popover)
                             }
                     }

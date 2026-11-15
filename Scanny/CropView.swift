@@ -10,6 +10,9 @@ struct CropView: View {
     @State private var undoStack: [[CGPoint]] = []
     @State private var redoStack: [[CGPoint]] = []
     @State private var isDragging = false
+    private static let cornerNames = ["Top left", "Top right", "Bottom right", "Bottom left"]
+    /// How far one VoiceOver nudge moves a corner, as a fraction of the page.
+    private static let nudge: CGFloat = 0.02
     private static let full = [CGPoint(x: 0, y: 0), CGPoint(x: 1, y: 0), CGPoint(x: 1, y: 1), CGPoint(x: 0, y: 1)]
 
     init(image: UIImage, initial: [CGPoint]?, onApply: @escaping ([CGPoint]?) -> Void, onCancel: @escaping () -> Void) {
@@ -28,6 +31,7 @@ struct CropView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: geo.size.width, height: geo.size.height)
+                        .accessibilityHidden(true)
                     Path { path in
                         path.move(to: mapped(quad[0], rect))
                         for i in 1..<4 { path.addLine(to: mapped(quad[i], rect)) }
@@ -61,6 +65,16 @@ struct CropView: View {
                                     }
                                     .onEnded { _ in isDragging = false }
                             )
+                            // VoiceOver can't drag, so each corner can be nudged with actions.
+                            .accessibilityElement()
+                            .accessibilityLabel("\(Self.cornerNames[i]) corner")
+                            .accessibilityValue(
+                                "\(Int((quad[i].x * 100).rounded())) percent across, \(Int((quad[i].y * 100).rounded())) percent down")
+                            .accessibilityHint("Swipe up or down to choose a direction, then double tap to move.")
+                            .accessibilityAction(named: "Move Up") { nudge(i, dx: 0, dy: -Self.nudge) }
+                            .accessibilityAction(named: "Move Down") { nudge(i, dx: 0, dy: Self.nudge) }
+                            .accessibilityAction(named: "Move Left") { nudge(i, dx: -Self.nudge, dy: 0) }
+                            .accessibilityAction(named: "Move Right") { nudge(i, dx: Self.nudge, dy: 0) }
                     }
                 }
                 .coordinateSpace(name: "crop")
@@ -101,6 +115,12 @@ struct CropView: View {
                 }
             }
         }
+    }
+
+    private func nudge(_ i: Int, dx: CGFloat, dy: CGFloat) {
+        undoStack.append(quad)
+        redoStack.removeAll()
+        quad[i] = CGPoint(x: min(max(quad[i].x + dx, 0), 1), y: min(max(quad[i].y + dy, 0), 1))
     }
 
     private func fitted(_ size: CGSize, in container: CGSize) -> CGRect {

@@ -43,7 +43,8 @@ struct ScanWidgetView: View {
                 VStack(spacing: 8) {
                     AppIconElements(knockout: renderingMode != .fullColor).padding(8)
                     Text("Scan Document")
-                        .font(.footnote.weight(.semibold))
+                        // 15pt bold counts as large text, so WCAG AA needs 3:1 here.
+                        .font(.subheadline.weight(.bold))
                         .foregroundStyle(.white)
                 }
             default:
@@ -53,6 +54,10 @@ struct ScanWidgetView: View {
                 }
             }
         }
+        // One element for VoiceOver; the circular widget has no text of its own.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Scan a document")
+        .accessibilityAddTraits(.isButton)
         .widgetURL(URL(string: "scanny://scan"))
         .containerBackground(for: .widget) {
             if family == .systemSmall {
@@ -67,7 +72,9 @@ struct ScanWidgetView: View {
                     } else {
                         LinearGradient(
                             colors: [Color(.displayP3, red: 1.0, green: 0.74, blue: 0.30),
-                                     Color(.displayP3, red: 0.90, green: 0.26, blue: 0.30)],
+                                     // Slightly deeper than the icon's bottom so the white
+                                     // label clears 3:1 with margin.
+                                     Color(.displayP3, red: 0.76, green: 0.16, blue: 0.22)],
                             startPoint: .top, endPoint: .bottom)
                     }
                     MatGrid(opacity: colorScheme == .dark ? 0.035 : 0.08)

@@ -33,6 +33,9 @@ struct PageDetailView: View {
             .scaledToFit()
             .clipShape(.rect(cornerRadius: 8))
             .shadow(radius: 8, y: 2)
+            .accessibilityLabel("Page \(number)")
+            .accessibilityValue(draft.filter == .original ? "" : "\(draft.filter.rawValue) filter")
+            .accessibilityAddTraits(.isImage)
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Page \(number)")
@@ -65,6 +68,7 @@ struct PageDetailView: View {
                     } label: {
                         Label("Filter", systemImage: "camera.filters")
                     }
+                    .accessibilityValue(draft.filter.rawValue)
                     Button("Crop", systemImage: "crop") { isCropping = true }
                     Button("Rotate Left", systemImage: "rotate.left") { draft.rotateLeft() }
                     Button("Rotate Right", systemImage: "rotate.right") { draft.rotate() }

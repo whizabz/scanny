@@ -33,6 +33,11 @@ struct ContentView: View {
     @State private var isScanning = DocumentScanner.isSupported
         && (UserDefaults.standard.object(forKey: "autoLaunchScanner") as? Bool ?? false)
     @State private var screenWidth: CGFloat = 390
+    // Bar and button heights grow with Dynamic Type so large text isn't clipped.
+    @ScaledMetric(relativeTo: .body) private var barHeight: CGFloat = 50
+    @ScaledMetric(relativeTo: .body) private var nameHeight: CGFloat = 48
+    @ScaledMetric(relativeTo: .body) private var actionSize: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var emptyButtonWidth: CGFloat = 200
 
     /// "Share", or "Share (3)" when several images will be shared.
     private var shareTitle: String {
@@ -218,6 +223,7 @@ struct ContentView: View {
     }
 
     private func clearScan() {
+        AccessibilityNotification.Announcement("Scan deleted").post()
         docName = ""
         items = []
         selectedIDs = []
@@ -241,14 +247,14 @@ struct ContentView: View {
             if DocumentScanner.isSupported {
                 Button { startScan() } label: {
                     Label("New Scan", systemImage: "doc.viewfinder")
-                        .frame(width: 200)
+                        .frame(minWidth: emptyButtonWidth)
                 }
                 .buttonStyle(.glassProminent)
                 .controlSize(.large)
             }
             Button { showPhotoPicker = true } label: {
                 Label("Import from Photos", systemImage: "photo.on.rectangle")
-                    .frame(width: 200)
+                    .frame(minWidth: emptyButtonWidth)
             }
             .buttonStyle(.glass)
             .controlSize(.large)
@@ -270,15 +276,19 @@ struct ContentView: View {
                 Spacer()
                 Button("All") { selectedIDs = Set(items.map(\.id)) }
                     .disabled(selectedIDs.count == items.count)
+                    .accessibilityLabel("Select All Pages")
                 Button("None") { selectedIDs = [] }
                     .disabled(selectedIDs.isEmpty)
+                    .accessibilityLabel("Deselect All Pages")
             }
             .buttonStyle(.glass)
             .controlSize(.regular)
             .padding(.horizontal)
             .padding(.top, 20)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 16)], spacing: 20) {
-                ForEach(items) { item in
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    let number = index + 1
+                    let isSelected = selectedIDs.contains(item.id)
                     VStack(spacing: 10) {
                         Button { selectedID = item.id } label: {
                             // Fixed-ratio frame so rotating never changes the layout.
@@ -294,9 +304,17 @@ struct ContentView: View {
                                 }
                         }
                         .buttonStyle(.plain)
-                        .opacity(selectedIDs.contains(item.id) ? 1 : 0.5)
-                        .overlay(alignment: .topTrailing) { selectionMark(for: item) }
-                        pageActions(for: item)
+                        .accessibilityLabel("Page \(number)")
+                        .accessibilityValue(isSelected ? "Selected" : "Not selected")
+                        .accessibilityHint("Opens the page editor")
+                        // VoiceOver users can act on a page without hunting for small buttons.
+                        .accessibilityAction(named: isSelected ? "Deselect" : "Select") { toggleSelection(item.id) }
+                        .accessibilityAction(named: "Rotate Left") { update(item.id) { $0.rotateLeft() } }
+                        .accessibilityAction(named: "Rotate Right") { update(item.id) { $0.rotate() } }
+                        .accessibilityAction(named: "Delete Page") { pageToDelete = item.id }
+                        .opacity(isSelected ? 1 : 0.5)
+                        .overlay(alignment: .topTrailing) { selectionMark(for: item, number: number) }
+                        pageActions(for: item, number: number)
                     }
                 }
             }
@@ -306,10 +324,14 @@ struct ContentView: View {
         .scrollDismissesKeyboard(.interactively)
     }
 
-    private func selectionMark(for item: PageItem) -> some View {
+    private func toggleSelection(_ id: UUID) {
+        if selectedIDs.contains(id) { selectedIDs.remove(id) } else { selectedIDs.insert(id) }
+    }
+
+    private func selectionMark(for item: PageItem, number: Int) -> some View {
         let isSelected = selectedIDs.contains(item.id)
         return Button {
-            if isSelected { selectedIDs.remove(item.id) } else { selectedIDs.insert(item.id) }
+            toggleSelection(item.id)
         } label: {
             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                 .font(.title2)
@@ -320,25 +342,32 @@ struct ContentView: View {
                 .padding(8)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(isSelected ? "Deselect page" : "Select page")
+        .accessibilityLabel("Select Page \(number)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
-    private func pageActions(for item: PageItem) -> some View {
+    private func pageActions(for item: PageItem, number: Int) -> some View {
         // One Liquid Glass capsule holding all three actions.
         HStack(spacing: 4) {
             Button("Rotate Left", systemImage: "rotate.left") {
                 update(item.id) { $0.rotateLeft() }
             }
-            .frame(width: 44, height: 40)
+            .frame(width: actionSize, height: actionSize)
+            .accessibilityLabel("Rotate Page \(number) Left")
+            .accessibilityInputLabels(["Rotate Left", "Rotate Page \(number) Left"])
             Button("Rotate Right", systemImage: "rotate.right") {
                 update(item.id) { $0.rotate() }
             }
-            .frame(width: 44, height: 40)
+            .frame(width: actionSize, height: actionSize)
+            .accessibilityLabel("Rotate Page \(number) Right")
+            .accessibilityInputLabels(["Rotate Right", "Rotate Page \(number) Right"])
             Button("Delete Page", systemImage: "trash", role: .destructive) {
                 pageToDelete = item.id
             }
             .foregroundStyle(.red)
-            .frame(width: 44, height: 40)
+            .frame(width: actionSize, height: actionSize)
+            .accessibilityLabel("Delete Page \(number)")
+            .accessibilityInputLabels(["Delete Page", "Delete Page \(number)"])
         }
         .labelStyle(.iconOnly)
         .buttonStyle(.plain)
@@ -356,6 +385,7 @@ struct ContentView: View {
             HStack(spacing: 10) {
                 Text("Name")
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true) // the field below carries the label
                 TextField("Name", text: $docName)
                     .labelsHidden()
                     .autocorrectionDisabled()
@@ -363,7 +393,7 @@ struct ContentView: View {
                     .submitLabel(.done)
             }
             .padding(.horizontal, 16)
-            .frame(height: 48)
+            .frame(minHeight: nameHeight)
             .glassEffect(.regular.interactive(), in: .capsule)
             actionRow
         }
@@ -392,7 +422,9 @@ struct ContentView: View {
             }
             .buttonStyle(.glass)
             .controlSize(.large)
-            .frame(height: 50)
+            .frame(height: barHeight)
+            .accessibilityLabel("File Type")
+            .accessibilityValue(format.title(pageCount: selectedItems.count))
             .fixedSize(horizontal: true, vertical: false)
 
             ShareLink(items: exportFiles) {
@@ -401,7 +433,7 @@ struct ContentView: View {
             }
             .buttonStyle(.glassProminent)
             .controlSize(.large)
-            .frame(height: 50)
+            .frame(height: barHeight)
             .disabled(exportFiles.isEmpty)
         }
     }
