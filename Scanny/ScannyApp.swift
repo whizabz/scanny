@@ -1,4 +1,5 @@
 import SwiftUI
+import TipKit
 
 @main
 struct ScannyApp: App {
@@ -7,6 +8,7 @@ struct ScannyApp: App {
     init() {
         // Remove exported scans left behind if the app was killed before it could clean up.
         ScanExport.clear()
+        try? Tips.configure()
     }
 
     var body: some Scene {

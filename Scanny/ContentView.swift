@@ -1,6 +1,7 @@
 import SwiftUI
 import VisionKit
 import PhotosUI
+import TipKit
 
 struct ContentView: View {
     // Held in memory only. Nothing is saved, so closing the app clears the scan.
@@ -22,7 +23,7 @@ struct ContentView: View {
     @State private var backgroundedAt: Date?
     @Environment(\.scenePhase) private var scenePhase
     @State private var quickActions = QuickActions.shared
-    @AppStorage("clearAfterMinutes") private var clearAfterMinutes = 0
+    @AppStorage("clearAfterSeconds") private var clearAfterSeconds = 60
     @AppStorage("autoLaunchScanner") private var autoLaunch = false
     @AppStorage("defaultFormat") private var defaultFormatRaw = ExportFormat.pdf.rawValue
     @AppStorage("defaultFilter") private var defaultFilterRaw = PageFilter.original.rawValue
@@ -53,6 +54,17 @@ struct ContentView: View {
             Group {
                 if items.isEmpty {
                     emptyState
+                        .safeAreaInset(edge: .bottom) {
+                            // Hidden once dismissed, or once the setting is already on.
+                            if !autoLaunch {
+                                TipView(AutoLaunchTip()) { action in
+                                    if action.id == "settings" { showSettings = true }
+                                }
+                                .tipViewStyle(LinkTipStyle())
+                                .padding(.horizontal)
+                                .padding(.bottom, 8)
+                            }
+                        }
                 } else {
                     reviewGrid
                         // Discarding: the pages shrink away inside a puff of smoke.
@@ -123,8 +135,8 @@ struct ContentView: View {
             case .active:
                 guard let left = backgroundedAt else { return }
                 backgroundedAt = nil
-                if clearAfterMinutes > 0, !items.isEmpty, !isScanning,
-                   Date.now.timeIntervalSince(left) >= Double(clearAfterMinutes) * 60 {
+                if clearAfterSeconds > 0, !items.isEmpty, !isScanning,
+                   Date.now.timeIntervalSince(left) >= Double(clearAfterSeconds) {
                     expireScan()
                 }
             default:

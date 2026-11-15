@@ -11,7 +11,7 @@ struct SettingsView: View {
     @AppStorage("includeSeconds") private var includeSeconds = true
     @AppStorage("nameSeparator") private var separator = NameSeparator.none.rawValue
     @AppStorage("autoLaunchScanner") private var autoLaunch = false
-    @AppStorage("clearAfterMinutes") private var clearAfterMinutes = 0
+    @AppStorage("clearAfterSeconds") private var clearAfterSeconds = 60
     @AppStorage("defaultFormat") private var defaultFormat = ExportFormat.pdf.rawValue
     @AppStorage("defaultFilter") private var filterRaw = PageFilter.original.rawValue
 
@@ -62,9 +62,10 @@ struct SettingsView: View {
             List {
                 Section {
                     Toggle("Open Scanner at Launch", isOn: $autoLaunch)
-                    Picker("Clear Previous Scan After", selection: $clearAfterMinutes) {
+                    Picker("Clear Previous Scan After", selection: $clearAfterSeconds) {
                         Text("Never").tag(0)
-                        ForEach([1, 2, 5, 10, 15], id: \.self) { Text("\($0) min").tag($0) }
+                        Text("30 sec").tag(30)
+                        ForEach([1, 2, 5, 10, 15], id: \.self) { Text("\($0) min").tag($0 * 60) }
                     }
                     Picker("Default Filter", selection: $filterRaw) {
                         ForEach(PageFilter.allCases) { Text($0.rawValue).tag($0.rawValue) }
