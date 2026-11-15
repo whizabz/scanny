@@ -8,6 +8,8 @@ struct ContentView: View {
     @State private var pageToDelete: UUID?
     @State private var pickedPhotos: [PhotosPickerItem] = []
     @State private var showPhotoPicker = false
+    @State private var isPoofing = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Pages that will be exported. New pages start selected.
     @State private var selectedIDs: Set<UUID> = []
     @State private var selectedID: UUID?
@@ -48,6 +50,12 @@ struct ContentView: View {
                     emptyState
                 } else {
                     reviewGrid
+                        // Discarding: the pages shrink away inside a puff of smoke.
+                        .scaleEffect(isPoofing ? 0.4 : 1)
+                        .opacity(isPoofing ? 0 : 1)
+                        .blur(radius: isPoofing ? 8 : 0)
+                        .overlay { if isPoofing { PoofCloud() } }
+                        .allowsHitTesting(!isPoofing)
                         .safeAreaInset(edge: .bottom) { shareBar }
                 }
             }
@@ -129,6 +137,7 @@ struct ContentView: View {
             guard !Task.isCancelled else { return }
             exportFiles = files
         }
+        .sensoryFeedback(.impact(weight: .light), trigger: isPoofing) { _, new in new }
         .alert("Delete this scan?", isPresented: $confirmDiscard) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) { discard() }
@@ -197,13 +206,24 @@ struct ContentView: View {
         if autoLaunch { startScan() }
     }
 
+    /// Discards the scan with a puff of smoke, then returns to the home screen.
     private func discard() {
+        guard !reduceMotion else { clearScan(); return }
+        withAnimation(.easeIn(duration: 0.35)) { isPoofing = true }
+        Task {
+            try? await Task.sleep(for: .milliseconds(850))
+            clearScan()
+            isPoofing = false
+        }
+    }
+
+    private func clearScan() {
         docName = ""
         items = []
         selectedIDs = []
         exportFiles = []
+        selectedID = nil
         ScanExport.clear()
-        startScan()
     }
 
     // MARK: Empty state

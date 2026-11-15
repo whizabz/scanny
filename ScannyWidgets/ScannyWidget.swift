@@ -49,7 +49,7 @@ struct ScanWidgetView: View {
             default:
                 ZStack {
                     AccessoryWidgetBackground()
-                    ScanMark(bracketWeight: 0.045).padding(8)
+                    ScanMark(bracketWeight: 0.05).padding(11)
                 }
             }
         }
@@ -58,15 +58,19 @@ struct ScanWidgetView: View {
             if family == .systemSmall {
                 ZStack {
                     if colorScheme == .dark {
-                        // Dark appearance: the dark background of the app icon.
-                        Color(white: 0.12)
+                        // Dark appearance: the app icon's dark background. On the Home
+                        // Screen it shows as a grey from about 18% to 8% white, but the
+                        // system lifts a widget's dark colours (0.26 showed as 0.43), so
+                        // these are set lower to land on the icon's.
+                        LinearGradient(colors: [Color(white: 0.06), Color(white: 0.016)],
+                                       startPoint: .top, endPoint: .bottom)
                     } else {
                         LinearGradient(
                             colors: [Color(.displayP3, red: 1.0, green: 0.74, blue: 0.30),
                                      Color(.displayP3, red: 0.90, green: 0.26, blue: 0.30)],
                             startPoint: .top, endPoint: .bottom)
                     }
-                    MatGrid()
+                    MatGrid(opacity: colorScheme == .dark ? 0.035 : 0.08)
                 }
             } else {
                 Color.clear

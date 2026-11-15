@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- Brackets sit 90 units outside the page on every side -->
-  <g fill="none" stroke="#ffffff" stroke-width="46" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M252 292V242Q252 182 312 182H362"/>
-    <path d="M662 182H712Q772 182 772 242V292"/>
-    <path d="M252 733V783Q252 843 312 843H362"/>
-    <path d="M772 733V783Q772 843 712 843H662"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><g fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"><path d="M290.7 261.5L298.4 200.0L360.4 200.0"/><path d="M663.6 200.0L725.6 200.0L733.3 261.5"/><path d="M795.9 762.5L803.6 824.0L741.6 824.0"/><path d="M282.4 824.0L220.4 824.0L228.1 762.5"/></g></svg>

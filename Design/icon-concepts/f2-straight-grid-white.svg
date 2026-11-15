@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+  <linearGradient id="warm" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFBD4D"/><stop offset="1" stop-color="#E6424D"/>
+  </linearGradient>
+  <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#ECEAE6"/>
+  </linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+    <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#5A1010" flood-opacity="0.35"/>
+  </filter>
+</defs>
+<rect width="1024" height="1024" fill="url(#warm)"/>
+<polygon points="326.0,246.0 698.0,246.0 768.0,786.0 256.0,786.0" fill="url(#paper)" filter="url(#shadow)"/>
+<g stroke="#8A7A70" stroke-width="7" stroke-linecap="round" opacity="0.5"><path d="M360.4 310.8L663.6 310.8"/><path d="M356.3 350.8L667.7 350.8"/><path d="M352.3 390.7L671.7 390.7"/><path d="M348.2 430.7L675.8 430.7"/><path d="M344.2 470.6L679.8 470.6"/><path d="M340.2 510.6L683.8 510.6"/><path d="M336.1 550.6L687.9 550.6"/><path d="M332.1 590.5L691.9 590.5"/><path d="M328.0 630.5L696.0 630.5"/><path d="M324.0 670.4L700.0 670.4"/><path d="M320.0 710.4L556.3 710.4"/></g>
+<polygon points="558.3,300.0 655.3,305.4 661.0,408.0 565.6,402.6" fill="none" stroke="#6E6A78" stroke-width="7" stroke-linejoin="round" opacity="0.6"/>
+<polygon points="326.0,246.0 698.0,246.0 768.0,786.0 256.0,786.0" fill="#FF8A3D55"/>
+<defs><linearGradient id="fade0" gradientUnits="userSpaceOnUse" x1="459.9" y1="246.0" x2="426.9" y2="742.8"><stop offset="0" stop-color="#E8572A" stop-opacity="1"/><stop offset="0.55" stop-color="#E8572A" stop-opacity="0.85"/><stop offset="1" stop-color="#E8572A" stop-opacity="0"/></linearGradient><linearGradient id="fade1" gradientUnits="userSpaceOnUse" x1="579.0" y1="246.0" x2="590.0" y2="580.8"><stop offset="0" stop-color="#E8572A" stop-opacity="1"/><stop offset="0.55" stop-color="#E8572A" stop-opacity="0.85"/><stop offset="1" stop-color="#E8572A" stop-opacity="0"/></linearGradient><linearGradient id="fade2" gradientUnits="userSpaceOnUse" x1="593.9" y1="786.0" x2="590.5" y2="645.6"><stop offset="0" stop-color="#E8572A" stop-opacity="1"/><stop offset="0.55" stop-color="#E8572A" stop-opacity="0.85"/><stop offset="1" stop-color="#E8572A" stop-opacity="0"/></linearGradient><linearGradient id="fade3" gradientUnits="userSpaceOnUse" x1="302.2" y1="429.6" x2="702.1" y2="440.4"><stop offset="0" stop-color="#E8572A" stop-opacity="1"/><stop offset="0.55" stop-color="#E8572A" stop-opacity="0.85"/><stop offset="1" stop-color="#E8572A" stop-opacity="0"/></linearGradient><linearGradient id="fade4" gradientUnits="userSpaceOnUse" x1="744.2" y1="602.4" x2="419.3" y2="599.7"><stop offset="0" stop-color="#E8572A" stop-opacity="1"/><stop offset="0.55" stop-color="#E8572A" stop-opacity="0.85"/><stop offset="1" stop-color="#E8572A" stop-opacity="0"/></linearGradient><linearGradient id="fade5" gradientUnits="userSpaceOnUse" x1="279.8" y1="602.4" x2="400.5" y2="603.5"><stop offset="0" stop-color="#E8572A" stop-opacity="1"/><stop offset="0.55" stop-color="#E8572A" stop-opacity="0.85"/><stop offset="1" stop-color="#E8572A" stop-opacity="0"/></linearGradient></defs><path d="M459.9 246.0L426.9 742.8" stroke="url(#fade0)" stroke-width="9" stroke-linecap="butt" fill="none"/><path d="M579.0 246.0L590.0 580.8" stroke="url(#fade1)" stroke-width="9" stroke-linecap="butt" fill="none"/><path d="M593.9 786.0L590.5 645.6" stroke="url(#fade2)" stroke-width="9" stroke-linecap="butt" fill="none"/><path d="M302.2 429.6L702.1 440.4" stroke="url(#fade3)" stroke-width="9" stroke-linecap="butt" fill="none"/><path d="M744.2 602.4L419.3 599.7" stroke="url(#fade4)" stroke-width="9" stroke-linecap="butt" fill="none"/><path d="M279.8 602.4L400.5 603.5" stroke="url(#fade5)" stroke-width="9" stroke-linecap="butt" fill="none"/>
+<polygon points="326.0,246.0 698.0,246.0 768.0,786.0 256.0,786.0" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linejoin="round"/>
+<g fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="butt" stroke-linejoin="round" opacity="0.7"><path d="M280.1 289.3L290.9 206.0L374.9 206.0"/><path d="M649.1 206.0L733.1 206.0L743.9 289.3"/><path d="M802.7 742.7L813.5 826.0L729.5 826.0"/><path d="M294.5 826.0L210.5 826.0L221.3 742.7"/></g>
+</svg>
