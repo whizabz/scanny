@@ -1,10 +1,13 @@
 import SwiftUI
 import VisionKit
+import PhotosUI
 
 struct ContentView: View {
     // Held in memory only. Nothing is saved, so closing the app clears the scan.
     @State private var items: [PageItem] = []
     @State private var pageToDelete: UUID?
+    @State private var pickedPhotos: [PhotosPickerItem] = []
+    @State private var showPhotoPicker = false
     /// Pages that will be exported. New pages start selected.
     @State private var selectedIDs: Set<UUID> = []
     @State private var selectedID: UUID?
@@ -16,8 +19,9 @@ struct ContentView: View {
     @State private var showSettings = false
     @State private var backgroundedAt: Date?
     @Environment(\.scenePhase) private var scenePhase
+    @State private var quickActions = QuickActions.shared
     @AppStorage("clearAfterMinutes") private var clearAfterMinutes = 0
-    @AppStorage("autoLaunchScanner") private var autoLaunch = true
+    @AppStorage("autoLaunchScanner") private var autoLaunch = false
     @AppStorage("defaultFormat") private var defaultFormatRaw = ExportFormat.pdf.rawValue
     @AppStorage("defaultFilter") private var defaultFilterRaw = PageFilter.original.rawValue
 
@@ -25,7 +29,7 @@ struct ContentView: View {
     @State private var scanner: VNDocumentCameraViewController? =
         DocumentScanner.isSupported ? VNDocumentCameraViewController() : nil
     @State private var isScanning = DocumentScanner.isSupported
-        && (UserDefaults.standard.object(forKey: "autoLaunchScanner") as? Bool ?? true)
+        && (UserDefaults.standard.object(forKey: "autoLaunchScanner") as? Bool ?? false)
     @State private var screenWidth: CGFloat = 390
 
     /// "Share", or "Share (3)" when several images will be shared.
@@ -47,7 +51,7 @@ struct ContentView: View {
                         .safeAreaInset(edge: .bottom) { shareBar }
                 }
             }
-            .navigationTitle(items.isEmpty ? "Scanny" : "")
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             .navigationDestination(item: $selectedID) { id in
@@ -77,6 +81,23 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $pickedPhotos, matching: .images)
+        .onChange(of: pickedPhotos) { _, picked in
+            guard !picked.isEmpty else { return }
+            Task { await importPhotos(picked) }
+        }
+        .onChange(of: quickActions.importRequested, initial: true) { _, requested in
+            // Long-press "Import Photo" on the app icon.
+            guard requested else { return }
+            quickActions.importRequested = false
+            if !isScanning { showPhotoPicker = true }
+        }
+        .onChange(of: quickActions.scanRequested, initial: true) { _, requested in
+            // Long-press "Scan a document" on the app icon.
+            guard requested else { return }
+            quickActions.scanRequested = false
+            if !isScanning { startScan() }
+        }
         .onOpenURL { url in
             // scanny://scan, used by the lock screen widget.
             guard url.scheme == "scanny", url.host == "scan", !isScanning else { return }
@@ -141,19 +162,27 @@ struct ContentView: View {
 
     /// Adds scanned pages, applying the default filter. The first pages of a new
     /// scan also get an auto-generated name from the template in Settings.
-    private func addPages(_ images: [UIImage]) {
+    private func addPages(_ images: [UIImage], crops: [[CGPoint]?] = []) {
         if items.isEmpty {
             docName = NameTemplate.generateFromDefaults()
             format = ExportFormat(rawValue: defaultFormatRaw) ?? .pdf
         }
         let filter = PageFilter(rawValue: defaultFilterRaw) ?? .original
-        let new: [PageItem] = images.map { image in
+        let new: [PageItem] = images.enumerated().map { index, image in
             var item = PageItem(image)
+            if index < crops.count, let quad = crops[index] { item.setCrop(quad) }
             if filter != .original { item.setFilter(filter) }
             return item
         }
         items.append(contentsOf: new)
         selectedIDs.formUnion(new.map(\.id))
+    }
+
+    private func importPhotos(_ picked: [PhotosPickerItem]) async {
+        let results = await PhotoImport.load(picked)
+        pickedPhotos = []
+        guard !results.isEmpty else { return }
+        addPages(results.map(\.image), crops: results.map(\.crop))
     }
 
     /// The app was away longer than the "clear after" setting: drop the old scan.
@@ -185,15 +214,24 @@ struct ContentView: View {
                 .font(.title.bold())
         } description: {
             Text(DocumentScanner.isSupported
-                 ? "Nothing is saved. Scans stay only till you need them."
+                 ? "Scans are ephemeral: Scan, share, and poof!"
                  : "Document scanning needs a device with a camera.")
             .font(.footnote)
         } actions: {
             if DocumentScanner.isSupported {
-                Button("Scan", systemImage: "doc.viewfinder") { startScan() }
-                    .buttonStyle(.glassProminent)
-                    .controlSize(.large)
+                Button { startScan() } label: {
+                    Label("New Scan", systemImage: "doc.viewfinder")
+                        .frame(width: 200)
+                }
+                .buttonStyle(.glassProminent)
+                .controlSize(.large)
             }
+            Button { showPhotoPicker = true } label: {
+                Label("Import from Photos", systemImage: "photo.on.rectangle")
+                    .frame(width: 200)
+            }
+            .buttonStyle(.glass)
+            .controlSize(.large)
             #if DEBUG && targetEnvironment(simulator)
             Button("Load Sample Pages") { addPages(SamplePages.make()) }
                 .buttonStyle(.glass)

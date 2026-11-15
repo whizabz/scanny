@@ -10,7 +10,7 @@ struct SettingsView: View {
     @AppStorage("use24Hour") private var use24Hour = true
     @AppStorage("includeSeconds") private var includeSeconds = true
     @AppStorage("nameSeparator") private var separator = NameSeparator.none.rawValue
-    @AppStorage("autoLaunchScanner") private var autoLaunch = true
+    @AppStorage("autoLaunchScanner") private var autoLaunch = false
     @AppStorage("clearAfterMinutes") private var clearAfterMinutes = 0
     @AppStorage("defaultFormat") private var defaultFormat = ExportFormat.pdf.rawValue
     @AppStorage("defaultFilter") private var filterRaw = PageFilter.original.rawValue

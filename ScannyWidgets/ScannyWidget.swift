@@ -22,14 +22,15 @@ struct ScanProvider: TimelineProvider {
 
 struct ScanWidgetView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.widgetRenderingMode) private var renderingMode
 
     var body: some View {
         Group {
             switch family {
             case .accessoryRectangular:
                 HStack(spacing: 8) {
-                    Image(systemName: "doc.viewfinder")
-                        .font(.title2)
+                    ScanMark(bracketWeight: 0.045).frame(width: 34, height: 34)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Scanny").font(.headline)
                         Text("Scan a document").font(.caption)
@@ -38,16 +39,39 @@ struct ScanWidgetView: View {
                 }
             case .accessoryInline:
                 Label("Scan a document", systemImage: "doc.viewfinder")
+            case .systemSmall:
+                VStack(spacing: 8) {
+                    AppIconElements(knockout: renderingMode != .fullColor).padding(8)
+                    Text("Scan Document")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.white)
+                }
             default:
                 ZStack {
                     AccessoryWidgetBackground()
-                    Image(systemName: "doc.viewfinder")
-                        .font(.title2)
+                    ScanMark(bracketWeight: 0.045).padding(8)
                 }
             }
         }
         .widgetURL(URL(string: "scanny://scan"))
-        .containerBackground(for: .widget) { Color.clear }
+        .containerBackground(for: .widget) {
+            if family == .systemSmall {
+                ZStack {
+                    if colorScheme == .dark {
+                        // Dark appearance: the dark background of the app icon.
+                        Color(white: 0.12)
+                    } else {
+                        LinearGradient(
+                            colors: [Color(.displayP3, red: 1.0, green: 0.74, blue: 0.30),
+                                     Color(.displayP3, red: 0.90, green: 0.26, blue: 0.30)],
+                            startPoint: .top, endPoint: .bottom)
+                    }
+                    MatGrid()
+                }
+            } else {
+                Color.clear
+            }
+        }
     }
 }
 
@@ -61,6 +85,6 @@ struct ScanWidget: Widget {
         }
         .configurationDisplayName("Scan")
         .description("Open Scanny straight into the scanner.")
-        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+        .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }

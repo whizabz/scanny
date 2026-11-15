@@ -29,6 +29,13 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: xyz.saltedchips.scanny
             CFBundleURLSchemes: [scanny]
+        UIApplicationShortcutItems:
+          - UIApplicationShortcutItemType: xyz.saltedchips.scanny.scan
+            UIApplicationShortcutItemTitle: New Scan
+            UIApplicationShortcutItemIconSymbolName: doc.viewfinder
+          - UIApplicationShortcutItemType: xyz.saltedchips.scanny.import
+            UIApplicationShortcutItemTitle: Import from Photos
+            UIApplicationShortcutItemIconSymbolName: photo.on.rectangle
         NSCameraUsageDescription: Scanny uses the camera to scan documents. Nothing is stored or uploaded.
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
@@ -45,6 +52,7 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: xyz.saltedchips.scanny
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: Scanny
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
   ScannyWidgets:
     type: app-extension
     platform: iOS

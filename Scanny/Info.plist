@@ -35,6 +35,25 @@
 	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Scanny uses the camera to scan documents. Nothing is stored or uploaded.</string>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>doc.viewfinder</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>New Scan</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>xyz.saltedchips.scanny.scan</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>photo.on.rectangle</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Import from Photos</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>xyz.saltedchips.scanny.import</string>
+		</dict>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
