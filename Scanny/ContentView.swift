@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var backgroundedAt: Date?
     @Environment(\.scenePhase) private var scenePhase
     @State private var quickActions = QuickActions.shared
+    @State private var scanSignal = ScanSignal.shared
     @AppStorage("clearAfterSeconds") private var clearAfterSeconds = 60
     @AppStorage("autoLaunchScanner") private var autoLaunch = false
     @AppStorage("defaultFormat") private var defaultFormatRaw = ExportFormat.pdf.rawValue
@@ -121,6 +122,12 @@ struct ContentView: View {
             // Long-press "Scan a document" on the app icon.
             guard requested else { return }
             quickActions.scanRequested = false
+            if !isScanning { startScan() }
+        }
+        .onChange(of: scanSignal.requested, initial: true) { _, requested in
+            // The Control Center control.
+            guard requested else { return }
+            scanSignal.requested = false
             if !isScanning { startScan() }
         }
         .onOpenURL { url in
@@ -223,7 +230,7 @@ struct ContentView: View {
         if autoLaunch { startScan() }
     }
 
-    /// Discards the scan with a puff of smoke, then returns to the home screen.
+    /// Discards the scan with a puff of smoke, then returns to the start screen.
     private func discard() {
         guard !reduceMotion else { clearScan(); return }
         withAnimation(.easeIn(duration: 0.35)) { isPoofing = true }

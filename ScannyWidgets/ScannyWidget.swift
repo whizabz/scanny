@@ -1,3 +1,4 @@
+import AppIntents
 import SwiftUI
 import WidgetKit
 
@@ -50,7 +51,7 @@ struct ScanWidgetView: View {
             default:
                 ZStack {
                     AccessoryWidgetBackground()
-                    ScanMark(bracketWeight: 0.05).padding(11)
+                    ScanMark(bracketWeight: 0.05).padding(14)
                 }
             }
         }
@@ -86,7 +87,6 @@ struct ScanWidgetView: View {
     }
 }
 
-@main
 struct ScanWidget: Widget {
     let kind = "ScanWidget"
 
@@ -97,5 +97,28 @@ struct ScanWidget: Widget {
         .configurationDisplayName("Scan")
         .description("Open Scanny straight into the scanner.")
         .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+/// Control Center / Lock Screen control. Opens Scanny straight into the scanner.
+struct ScanControl: ControlWidget {
+    static let kind = "xyz.saltedchips.scanny.widgets.ScanControl"
+
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(kind: Self.kind) {
+            ControlWidgetButton(action: ScanIntent()) {
+                Label("New Scan", systemImage: "doc.viewfinder")
+            }
+        }
+        .displayName("New Scan")
+        .description("Open Scanny straight into the scanner.")
+    }
+}
+
+@main
+struct ScannyWidgetBundle: WidgetBundle {
+    var body: some Widget {
+        ScanWidget()
+        ScanControl()
     }
 }

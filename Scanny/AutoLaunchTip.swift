@@ -1,10 +1,10 @@
 import SwiftUI
 import TipKit
 
-/// Home screen tip about opening the scanner automatically. TipKit remembers when
+/// Start screen tip about opening the scanner automatically. TipKit remembers when
 /// someone dismisses it, so it doesn't come back.
 struct AutoLaunchTip: Tip {
-    var title: Text { Text("Skip the home screen") }
+    var title: Text { Text("Skip the start screen") }
     var message: Text? { Text("Scanny can open straight into the scanner when it launches.") }
     var image: Image? { Image(systemName: "doc.viewfinder") }
     var actions: [Action] {

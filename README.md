@@ -23,7 +23,7 @@ open Scanny.xcodeproj
 ```
 
 The simulator has no camera, so scanning needs a real device. In debug simulator builds, a
-"Load Sample Pages" button on the home screen lets you try the review screen.
+"Load Sample Pages" button on the start screen lets you try the review screen.
 
 ## License
 
